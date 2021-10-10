@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -6,17 +6,21 @@ import {
   Image,
   Text,
   Linking,
+  Alert
 } from 'react-native';
-// import {
-//   DrawerContentScrollView,
-//   DrawerItemList,
-//   DrawerItem,
-// } from '@react-navigation/drawer';
-// import Icon from 'react-native-vector-icons/MaterialIcons';
-// import Dialog from "react-native-dialog";
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem,
+} from '@react-navigation/drawer';
+import AsyncStorage from '@react-native-community/async-storage';
+import { connect } from 'react-redux';
+import { logout } from '../container/actions/login'
+import Icon from 'react-native-vector-icons/Ionicons'
+
 const CustomSidebarMenu = (props) => {
   const [logoutDialog, setLogoutDialog] = useState(false);
-
+  const [user, setUser] = useState('');
   // const logout = () => {
   //   // setLogoutDialog(!logoutDialog);
   //   // props.navigation.goBack();
@@ -25,38 +29,58 @@ const CustomSidebarMenu = (props) => {
   // }
 
   return (
-  //  <SafeAreaView style={{ flex: 1 }}>
-  <View>
-    <Image
-
-source={require('../fruits.png')}
-style={styles.sideMenuProfileIcon}
-/>
-<Text style={{ alignSelf: 'center', fontSize: 20 }}>Email</Text>
-
-     
-     {/* <DrawerContentScrollView {...props}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Image
+        source={require('../assets/drawer_header.png')}
+        style={styles.sideMenuProfileIcon}
+      />
+      <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
-        <DrawerItem
-          label="Logout"
-          onPress={() => {
-            props.navigation.closeDrawer();
-            logout();
-          }}
-          icon={() => <Icon name={'logout'} size={28} color='#1a75bc' />}
-        />
-      </DrawerContentScrollView> */}
-    {/* </SafeAreaView> */}
-    </View> );
-  
+        {props.loginSuccess ?
+          <DrawerItem
+            label="Logout"
+            icon={() => <Icon name='log-out' size={26} color='#84c708' />}
+            onPress={() => {
+              console.log(props.auth.user.id)
+              Alert.alert(
+                "LogOut",
+                "Do you want to LogOut?",
+                [
+
+                  {
+                    text: "Cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                  },
+                  { text: "OK", onPress: () => { props.logout(props.auth.user.id), props.navigation.goBack() } }
+                ]
+              );
+              // props.logout(props.auth.user.id)
+            }
+
+            }
+          />
+          :
+          <DrawerItem
+            label="Login"
+            icon={() => <Icon name='log-in' size={26} color='#84c708' />}
+            onPress={() => {
+              console.log('click');
+              props.navigation.navigate('Login')
+            }
+            }
+          />
+        }
+      </DrawerContentScrollView>
+    </SafeAreaView>
+  );
+
 };
 const styles = StyleSheet.create({
   sideMenuProfileIcon: {
-    resizeMode: 'center',
+    resizeMode: 'cover',
     width: '100%',
-    height: 100,
-    backgroundColor:'yellow'
-    
+    height: 130,
   },
   iconStyle: {
     width: 15,
@@ -70,4 +94,15 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomSidebarMenu;
+
+const mapStateToProps = state => {
+  const { loginSuccess, auth, loading } = state.login;
+  return { loginSuccess, loading, auth };
+};
+const mapDispatchToProps = {
+  logout,
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CustomSidebarMenu);
